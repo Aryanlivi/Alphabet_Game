@@ -1,0 +1,17 @@
+{
+  "name": "project_alphabet",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html  --no-source-maps ",
+    "clean": "rmdir -r .cache ; rmdir -r dist"
+  },
+  "author": "Aryan Manandhar",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "pixi-tween": "^0.2.0",
+    "pixi.js": "^5.3.8"
+  }
+}
