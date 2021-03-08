@@ -10,8 +10,13 @@
   "author": "Aryan Manandhar",
   "license": "ISC",
   "dependencies": {
+    "@pixi/constants": "^6.0.0",
+    "@pixi/core": "^6.0.0",
+    "@pixi/filter-glow": "^4.0.0",
+    "@pixi/math": "^6.0.0",
     "lodash": "^4.17.21",
+    "pixi-particles": "^4.3.0",
     "pixi-tween": "^0.2.0",
-    "pixi.js": "^5.3.8"
+    "pixi.js": "^6.0.0"
   }
 }
