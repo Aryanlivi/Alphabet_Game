@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel index.html  --no-source-maps ",
-    "clean": "rmdir -r .cache ; rmdir -r dist"
+    "build": "npm run clean & parcel build index.html -d ready  --no-source-maps ",
+    "clean": "rimraf .cache & rimraf dist & rimraf ready"
   },
   "author": "Aryan Manandhar",
   "license": "ISC",
@@ -19,5 +20,8 @@
     "pixi-particles": "^4.3.0",
     "pixi-tween": "^0.2.0",
     "pixi.js": "^6.0.0"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2"
   }
 }

@@ -112,12 +112,14 @@ class Goti extends PIXI.Sprite {
         }
         else {//if wrong circle is clicked.
             const wrongclick_tween = PIXI.tweenManager.createTween(this);//shakes the wrong click.
+            
             wrongclick_tween.from({ x: this.x, y: this.y }).to({ x: this.x + 10, y: this.y });
             wrongclick_tween.pingPong = true;//pingpong motion.
             wrongclick_tween.time = 100;//time for tween.
             wrongclick_tween.repeat = 1;//no of times tween is repeated.
             iswrong_sound.play()//played sound linked with wrong click.
             wrongclick_tween.start()//starts tween.
+         
             misclick++//counts no of misclick by user
             if (misclick == 3) {//is more than 3 misclick it gives hint.
                 let correct_goti = this.new_correct(letter_array);//accepts correct circle from new_correct function and adds a Glowfilter in it.
