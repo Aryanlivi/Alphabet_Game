@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel index.html  --no-source-maps ",
-    "build": "npm run clean & parcel build index.html -d ready  --no-source-maps ",
+    "build": "npm run clean & parcel build index.html -d ready --public-url ./ --no-source-maps ",
     "clean": "rimraf .cache & rimraf dist & rimraf ready"
   },
   "author": "Aryan Manandhar",

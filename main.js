@@ -3,6 +3,7 @@ window.PIXI = PIXI;//global pixi
 const PixiTween = require('pixi-tween');//for animation
 import * as _ from "lodash"//for random ans shuffle
 import { Howl } from 'howler';
+import timer_sound from './sounds/timer.wav'
 import correct_sound from './sounds/correct.wav'
 import wrong_sound from './sounds/wrong.wav'
 import new_correct_sound from './sounds/new_correct.wav'
@@ -13,7 +14,7 @@ import background from './images/background.jpg'
 import tank from './images/tank.png'
 import cursor from './images/cursor.png'
 import circle from './images/circle.png'
-import start from  './images/start.png'
+import start from './images/start.png'
 import { Renderer } from "pixi.js";
 //import smoke from './images/smoke.png'
 let thatApp = null;//to access app globally
@@ -35,8 +36,12 @@ const isvictory_sound = new Howl({
     src: [victory_sound]
 });
 
-const nextletter=new PIXI.Text();
-const nextletter_container=new PIXI.Container();
+const timertick_sound = new Howl({
+    src: [timer_sound]
+});
+
+const nextletter = new PIXI.Text();
+const nextletter_container = new PIXI.Container();
 class Goti extends PIXI.Sprite {
     /**
      * @type {PIXI.Graphics}
@@ -54,25 +59,24 @@ class Goti extends PIXI.Sprite {
      * @param {number} x 
      * @param {number} y 
      */
-    init(letter) {
-        this.mycircles("0xc11a5d");//creating a graphics with color----> mycircles(color)
-        this.mytext(letter);//creating textfield-----mytext(letter)
+    init(letter, app) {
+        this.mycircles("0xc11a5d", letter, app);//creating a graphics with color
 
         const style = new PIXI.TextStyle({
             fontFamily: "Comic Sans MS",
-            fontSize:200,
+            fontSize: 200,
             fontWeight: "bold",
-            fill:"#DDDDDD"
+            fill: "#DDDDDD"
         });
-        nextletter.text="A"
-        nextletter.style=style;
+        nextletter.text = "A"
+        nextletter.style = style;
         nextletter.position.x = 1100;
         nextletter.position.y = 150;
         nextletter_container.addChild(nextletter);
         this.interactive = true;//is the graphics interactive?
         if (this.interactive == true) {//if interactive
             this.on('pointerdown', () => {//then on click do myclick(letter_array) it takes letter_array parameter to check if the correct circle is pressed.
-                this.myclick(game.letter_array)
+                this.myclick(game.letter_array, app)
             })
         }
     }
@@ -85,41 +89,45 @@ class Goti extends PIXI.Sprite {
             };
         }
     }
-    showcorrect(){
-        const temp=this.new_correct(game.letter_array)
-        const tween=PIXI.tweenManager.createTween(nextletter_container);
-        tween.from({alpha:1}).to({alpha:0});
-        tween.time=1000;
+    showcorrect() {
+        const temp = this.new_correct(game.letter_array)
+        const tween = PIXI.tweenManager.createTween(nextletter_container);
+        tween.from({ alpha: 1 }).to({ alpha: 0 });
+        tween.time = 1000;
         tween.start();
         nextletter_container.addChild(nextletter);
         tween.on("end", () => {
-            nextletter.text=`${temp.letter}`;
-            const tween2=PIXI.tweenManager.createTween(nextletter_container);
-            tween2.from({alpha:0}).to({alpha:1});
-            tween2.time=1000;
-            tween2.start();
-            })
-        }
-    myclick(letter_array) {//function that works when mouse is pressed
+            if (temp == undefined) {
+                tween.stop()
+            }
+            else {
+                nextletter.text = `${temp.letter}`;
+                const tween2 = PIXI.tweenManager.createTween(nextletter_container);
+                tween2.from({ alpha: 0 }).to({ alpha: 1 });
+                tween2.time = 1000;
+                tween2.start();
+            }
+        })
+    }
+    myclick(letter_array, app) {//function that works when mouse is pressed
         if (this.letter == letter_array[0]) {//the letter_array contains the correct order for clicks so this is condition to check if correct circle is pressed.
-            console.log(this.letter);
             this.interactive = false;//after pressing the circle it is no longer interactive
             letter_array.shift()//removes the clicked cirlce so as to maintain correct order for next iteration.
+            misclick = 0;
             this.showcorrect()
-            this.myanimation();//calls myanimation that is responsible for tweens of the correct circle (after click).
-            this.checkwinner(letter_array);//checks if game has been won. --> the checkwinner function takes letter_array as to find out if any letter is yet to be pressed in the correct order.
-            
+            this.myanimation(letter_array, app);//calls myanimation that is responsible for tweens of the correct circle (after click).
+
         }
         else {//if wrong circle is clicked.
             const wrongclick_tween = PIXI.tweenManager.createTween(this);//shakes the wrong click.
-            
+
             wrongclick_tween.from({ x: this.x, y: this.y }).to({ x: this.x + 10, y: this.y });
             wrongclick_tween.pingPong = true;//pingpong motion.
             wrongclick_tween.time = 100;//time for tween.
             wrongclick_tween.repeat = 1;//no of times tween is repeated.
             iswrong_sound.play()//played sound linked with wrong click.
             wrongclick_tween.start()//starts tween.
-         
+
             misclick++//counts no of misclick by user
             if (misclick == 3) {//is more than 3 misclick it gives hint.
                 let correct_goti = this.new_correct(letter_array);//accepts correct circle from new_correct function and adds a Glowfilter in it.
@@ -133,38 +141,40 @@ class Goti extends PIXI.Sprite {
             }
         }
     }
-    myanimation() {//animation for correct clicks.
+    myanimation(letter_array, app) {//animation for correct clicks.
         const store_tween = PIXI.tweenManager.createTween(this);//storing in the tank animation.
         store_tween.from({ x: this.x, y: this.y }).to({ x: _.random(1100, 1200), y: 615 })//tweens from and to
         store_tween.time = 1200;//tween time
         iscorrect_sound.play();//plays sound linked with correct click.
         store_tween.start();//starts tween.
+        store_tween.on("end", () => { this.checkwinner(letter_array, app) });
+
     }
 
-    mycircles(colour, letter) {//creating graphics object.
+    mycircles(colour, letter, app) {//creating graphics object.
         this.colour = colour;
-        let texture=new PIXI.Texture.from(circle);
-        let circle_sprite=new PIXI.Sprite(texture);
-        circle_sprite.width = 90;
-        circle_sprite.height = 90;
-        circle_sprite.anchor.set(0.5,0.5)
+        let texture = new PIXI.Texture.from(circle);
+        let circle_sprite = new PIXI.Sprite(texture);
+        circle_sprite.width = app.view.width / 14;
+        circle_sprite.height = app.view.height / 9;
+        circle_sprite.anchor.set(0.5, 0.5)
         this.addChild(circle_sprite);//adds as a child of single goti which is an object of GOTI i.e Pixi sprite
         this.mytext(letter);
     }
 
 
     mytext(letter) {//function that adds textfield as a child of single goti which is an object of GOTI i.e Pixi sprite
-        let style=new PIXI.TextStyle({
+        let style = new PIXI.TextStyle({
             dropShadow: true,
             dropShadowAngle: 45,
-            dropShadowDistance:2,
-            dropShadowColor:"0xffffff",
+            dropShadowDistance: 2,
+            dropShadowColor: "0xffffff",
             fill: "0x000000",
-            fontSize:30,
+            fontSize: 30,
             fontWeight: "bold"
         });
         this.textField = new PIXI.Text(letter);
-        this.textField.style=style
+        this.textField.style = style
         this.textField.y = -15;
         this.textField.x = -10;
         this.letter = letter;
@@ -223,65 +233,80 @@ class Goti extends PIXI.Sprite {
 
 
     /////////////-------------------Checks Winner and Resets-----------
-    checkwinner(letter_array) {
+    checkwinner(letter_array, app) {
         if (letter_array.length == 0) {//if letter_array is empty.
             isvictory_sound.play();//plays sound of victory.
-            alert("YOU WON!");
-            game.reset();//resets game
+            //alert("YOU WON!");
+            game.reset(app);//resets game
 
         }
     }
 }
-let that_cursor = null;
+//let that_cursor = null;
 //////----global variables of timer----
 let hours = 0;
 let minutes = 0;
 let seconds = -1;
 let timer = new PIXI.Text();
-let timeinterval = setInterval(() => { game.mytimer(thatApp) }, 1000);//called every 1 sec and increases seconds by 1.
+let timeinterval;
 class Board {
     spot_container = new PIXI.Container();//all the single gotis are here
     //particle_cont=new ParticleContainer();
     letter_array = [];//correct order letter_array
     gotis = [];//array of all gotis.
-    timer_container = new PIXI.Container();//timer container
-
+    timetext_container = new PIXI.Container();//timer container
     init() {
         const app = new PIXI.Application({//Main Application
-            width:1400,
-            height: 920,
+            width: 1400,
+            height: 900,
             backgroundColor: 0x006400,
             antialias: true//smoothens graphics.
         });
-        let back_texture=PIXI.Texture.from(background);
-        let back_img=new PIXI.Sprite(back_texture);
-        back_img.zIndex=-1;
-        back_img.width=app.view.width;
-        back_img.height=app.view.height;
+
+        window.onresize = function (event){
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+        
+            //this part resizes the canvas but keeps ratio the same     
+            app.view.style.width = w + "px";
+            app.view.style.height = h + "px";
+        
+            //this part adjusts the ratio:
+            app.resize(w,h);
+        }
+    
+
+        let back_texture = PIXI.Texture.from(background);
+        let back_img = new PIXI.Sprite(back_texture);
+        back_img.zIndex = -1;
+        back_img.width = app.view.width;
+        back_img.height = app.view.height;
         app.stage.addChild(back_img);
+        //console.log(app.view.width)
 
         document.getElementById("mydiv").appendChild(app.view);
-        app.view.style.width="100%";
-        app.view.style.height="100vh";
-        app.view.style.maxHeight=600;
-        app.view.style.maxWidth=900;
-        
-    
-        const start_texture=PIXI.Texture.from(start);
-        const start_sprite=new PIXI.Sprite(start_texture);
-        start_sprite.anchor.set(0.5,0.5)
-        start_sprite.x=app.view.width/2;
-        start_sprite.y=app.view.height/2
+        app.view.style.width = "100%";
+        app.view.style.height = "100vh";
+        app.view.style.maxHeight = 600;
+        app.view.style.maxWidth = 900;
+
+
+        const start_texture = PIXI.Texture.from(start);
+        const start_sprite = new PIXI.Sprite(start_texture);
+        start_sprite.anchor.set(0.5, 0.5)
+        start_sprite.x = app.view.width / 2;
+        start_sprite.y = app.view.height / 2
         start_sprite.interactive = true;
         app.stage.addChild(start_sprite);
-        start_sprite.on("pointerdown",()=>{
-            const fade_tween= PIXI.tweenManager.createTween(start_sprite);
-            fade_tween.from({alpha:1}).to({alpha:0});
-            fade_tween.time=500;
+        start_sprite.on("pointerdown", () => {
+            const fade_tween = PIXI.tweenManager.createTween(start_sprite);
+            fade_tween.from({ alpha: 1 }).to({ alpha: 0 });
+            fade_tween.time = 500;
             fade_tween.start();
-            fade_tween.on("end",()=>{ app.stage.removeChild(start_sprite);})
-            document.body.style.cursor = 'none';//hide cursor
-            app.stage.addChild(this.timer_container);//add timer on canvas
+            fade_tween.on("end", () => { app.stage.removeChild(start_sprite); })
+            timeinterval = setInterval(() => { this.mytimer(app) }, 1000);//called every 1 sec and increases seconds by 1.
+            //document.getElementById("mydiv").style.cursor = 'none';//hide cursor
+            app.stage.addChild(this.timetext_container);//add timer on canvas
             app.stage.addChild(nextletter_container);//displays correct one
             thatApp = app;//declare globally.
             this.draw(app);//draw gotis.
@@ -294,32 +319,35 @@ class Board {
             img.width = 300;
             img.height = 300;
             app.stage.addChild(img);//add tank sprite on canvas
-
+            /*
             let texture2 = PIXI.Texture.from(cursor)//cursor sprite texture
             let cursor_img = new PIXI.Sprite(texture2);
             cursor_img.width = 50;
             cursor_img.height = 50;
             app.stage.addChild(cursor_img);//add cursor sprite on canvas
             that_cursor = cursor_img;//access globally.
-            app.stage.interactive = true;//the app is interactive with the cursor
-            app.stage.on("pointermove", this.movePlayer); //when cursor pointer moves.
+            //app.stage.interactive = true;//the app is interactive with the cursor
+            //app.stage.on("pointermove", this.movePlayer); //when cursor pointer moves.
+            */
             app.ticker.add((delta) => {//This runs throughout the game.
                 PIXI.tweenManager.update();//updates all required tweens.
-            
+
             })
         })
-       
+
     }
+    /*
     movePlayer(e) {//when cursor is moved.
         let pos = e.data.global;
         that_cursor.x = pos.x;
         that_cursor.y = pos.y;
     }
+    */
 
     ////////////////------draws gotis objects------------
-    draw() {
+    draw(app) {
         const start = 'A'.charCodeAt(0);//starting letter code
-        const end = 'Z'.charCodeAt(0);//ending letter code
+        const end = 'C'.charCodeAt(0);//ending letter code
         for (let counter = start; counter <= end; counter++) {
             this.letter_array.push(String.fromCharCode(counter));//extracts letter from Character code with use of loop.
         }
@@ -329,7 +357,7 @@ class Board {
         for (let loop = 0; loop < shuffled.length; loop++) {//creates same no of goti object as shuffled array lengh. 
             const singleGoti = new Goti();//create goti object
             this.gotis.push(singleGoti);//append goti in an array named gotis
-            singleGoti.init(shuffled[loop]);//initialization.
+            singleGoti.init(shuffled[loop], app);//initialization.
             this.spot_container.addChild(singleGoti);//adds in spot_container
             singleGoti.placeme(this);//checks for collison
         }
@@ -337,33 +365,56 @@ class Board {
     }
     //////-----this is the timer-------------
     mytimer(app) {//called through setInterval every second.
+        const style = new PIXI.TextStyle({
+            fontFamily: "Comic Sans MS",
+            fontSize: 36,
+            fontWeight: "bold",
+            fill: "#DDDDDD"
+            //stroke: "#b5651d",
+            //strokeThickness: 40
+        });
+        timertick_sound.play();
         seconds++//increases second by 1 every second
+        
         if (seconds == 60) {
             minutes++;//increases min if seconds is 60;
+            style.fill="#ff0000"
             seconds = 0;//reset seconds
         }
         if (minutes == 60) {
             hours++;//increases hours if minutes is 60;
             minutes = 0;//reset minutes
         }
-        const style = new PIXI.TextStyle({
-            fontFamily: "Comic Sans MS",
-            fontSize: 36,
-            fontWeight: "bold",
-            fill:"#DDDDDD"
-            //stroke: "#b5651d",
-            //strokeThickness: 40
-        });
         timer.text = `Time Elapsed: ${hours}:${minutes}:${seconds}`;
+        console.log(timer.style.fill)
         timer.style = style;
-        timer.position.x = 1000;
+        timer.position.x =app.view.width-400;
         timer.position.y = 50;
-        this.timer_container.addChild(timer);//adds timer in timer_container
+        this.timetext_container.addChild(timer);//adds timer in timetext_container
 
     }
-    reset() {//resets game
+    reset(app) {//resets game
         clearInterval(timeinterval);//stops timer.
-        
+        const style = new PIXI.TextStyle({
+            fontFamily: "Comic Sans MS",
+            fontSize: 80,
+            fontWeight: "bold",
+            fill: "#DDDDDD"
+        });
+        const score_text = new PIXI.Text();
+        if (minutes == 0) {
+            score_text.text = `You finished in \n \t \t ${seconds} secs!`;
+        }
+        else if (hours == 0) {
+            score_text.text = `\t You finished in \n ${minutes} mins & ${seconds} secs!`;
+        }
+        else {
+            score_text.text = `\t \t You finished in \n ${hours} hr ${minutes} mins ${seconds} secs!`;
+        }
+        score_text.style = style;
+        score_text.position.x = app.view.width / 4;
+        score_text.position.y = app.view.width / 6;
+        setTimeout(() => { this.timetext_container.addChild(score_text); }, 1200)
     }
 }
 const game = new Board();//game object
