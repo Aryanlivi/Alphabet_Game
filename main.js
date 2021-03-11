@@ -248,7 +248,7 @@ class Board {
 
     init() {
         const app = new PIXI.Application({//Main Application
-            width: 1400,
+            width:1400,
             height: 920,
             backgroundColor: 0x006400,
             antialias: true//smoothens graphics.
@@ -259,8 +259,14 @@ class Board {
         back_img.width=app.view.width;
         back_img.height=app.view.height;
         app.stage.addChild(back_img);
-        app.view.style.marginLeft = window.innerWidth / 6;//margin for canvas
-        document.body.appendChild(app.view);
+
+        document.getElementById("mydiv").appendChild(app.view);
+        app.view.style.width="100%";
+        app.view.style.height="100vh";
+        app.view.style.maxHeight=600;
+        app.view.style.maxWidth=900;
+        
+    
         const start_texture=PIXI.Texture.from(start);
         const start_sprite=new PIXI.Sprite(start_texture);
         start_sprite.anchor.set(0.5,0.5)
