@@ -2,7 +2,8 @@ const PIXI = require('pixi.js');//for rendering
 window.PIXI = PIXI;//global pixi
 const PixiTween = require('pixi-tween');//for animation
 import * as _ from "lodash"//for random ans shuffle
-import { Howl } from 'howler';
+import { Howl, Howler} from 'howler';
+import mouseover_sound from  './sounds/mouseover.mp3'
 import timer_sound from './sounds/timer.wav'
 import correct_sound from './sounds/correct.wav'
 import wrong_sound from './sounds/wrong.wav'
@@ -16,6 +17,7 @@ import cursor from './images/cursor.png'
 import circle from './images/circle.png'
 import start from './images/start.png'
 import { Renderer } from "pixi.js";
+import { fill } from "lodash";
 //import smoke from './images/smoke.png'
 let thatApp = null;//to access app globally
 let misclick = 0;//counts misclick
@@ -39,6 +41,11 @@ const isvictory_sound = new Howl({
 const timertick_sound = new Howl({
     src: [timer_sound]
 });
+
+const ismouseover_sound = new Howl({
+    src: [mouseover_sound],
+});
+
 
 const nextletter = new PIXI.Text();
 const nextletter_container = new PIXI.Container();
@@ -132,9 +139,9 @@ class Goti extends PIXI.Sprite {
             if (misclick == 3) {//is more than 3 misclick it gives hint.
                 let correct_goti = this.new_correct(letter_array);//accepts correct circle from new_correct function and adds a Glowfilter in it.
                 isnewcorrect_sound.play();//plays sound linked with the hints.
-                correct_goti.filters = [new GlowFilter({//adding filters. needs to be in array!.
-                    innerStrength: 4,//inner strength of glow.
-                    color: 0x00ff00//color of glow
+                correct_goti.filters = [new GlowFilter({
+                    innerStrength: 4,
+                    color: 0x00ff00
 
                 })];
                 misclick = 0;//resets misclick
@@ -143,6 +150,7 @@ class Goti extends PIXI.Sprite {
     }
     myanimation(letter_array, app) {//animation for correct clicks.
         const store_tween = PIXI.tweenManager.createTween(this);//storing in the tank animation.
+        this.filters=false;
         store_tween.from({ x: this.x, y: this.y }).to({ x: _.random(1100, 1200), y: 615 })//tweens from and to
         store_tween.time = 1200;//tween time
         iscorrect_sound.play();//plays sound linked with correct click.
@@ -152,7 +160,6 @@ class Goti extends PIXI.Sprite {
     }
 
     mycircles(colour, letter, app) {//creating graphics object.
-        this.colour = colour;
         let texture = new PIXI.Texture.from(circle);
         let circle_sprite = new PIXI.Sprite(texture);
         circle_sprite.width = app.view.width / 14;
@@ -204,6 +211,27 @@ class Goti extends PIXI.Sprite {
                 spread_tween.on("end", () => this.interactive = true)//user's click only work after tween is ended.
                 this.laterx = ranx;
                 this.latery = rany;
+                this.on("mouseover",()=>
+                {
+                    this.filters=[new GlowFilter({
+                        innerStrength:2,
+                        color:0xff0000
+                    })];
+                    const scale_tween=PIXI.tweenManager.createTween(this.scale);
+                    ismouseover_sound.play();
+                    scale_tween.from({x:1,y:1}).to({x:1.1,y:1.1})
+                    scale_tween.time=100;
+                    scale_tween.start()
+                    
+                });
+                this.on("mouseout",()=>{
+                    this.filters=false;
+                    const scale_tween=PIXI.tweenManager.createTween(this.scale);
+                    ismouseover_sound.play();
+                    scale_tween.from({x:1.1,y:1.1}).to({x:1,y:1})
+                    scale_tween.time=100;
+                    scale_tween.start()
+                })
                 break;
             }
         }
@@ -298,7 +326,16 @@ class Board {
         start_sprite.y = app.view.height / 2
         start_sprite.interactive = true;
         app.stage.addChild(start_sprite);
+        start_sprite.on("mouseover",()=>{
+            ismouseover_sound.play();
+            start_sprite.filters=[new GlowFilter({
+            innerStrength: 4,
+            color: 0x00ff00
+
+        })]});
+        start_sprite.on("mouseout",()=>{start_sprite.filters=false})
         start_sprite.on("pointerdown", () => {
+            start_sprite.filters=false;
             const fade_tween = PIXI.tweenManager.createTween(start_sprite);
             fade_tween.from({ alpha: 1 }).to({ alpha: 0 });
             fade_tween.time = 500;
@@ -347,7 +384,7 @@ class Board {
     ////////////////------draws gotis objects------------
     draw(app) {
         const start = 'A'.charCodeAt(0);//starting letter code
-        const end = 'C'.charCodeAt(0);//ending letter code
+        const end = 'Z'.charCodeAt(0);//ending letter code
         for (let counter = start; counter <= end; counter++) {
             this.letter_array.push(String.fromCharCode(counter));//extracts letter from Character code with use of loop.
         }
@@ -386,7 +423,6 @@ class Board {
             minutes = 0;//reset minutes
         }
         timer.text = `Time Elapsed: ${hours}:${minutes}:${seconds}`;
-        console.log(timer.style.fill)
         timer.style = style;
         timer.position.x =app.view.width-400;
         timer.position.y = 50;
