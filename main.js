@@ -2,9 +2,9 @@ const PIXI = require('pixi.js');//for rendering
 window.PIXI = PIXI;//global pixi
 const PixiTween = require('pixi-tween');//for animation
 import * as _ from "lodash"//for random ans shuffle
-import { Howl} from 'howler';
+import { Howl } from 'howler';
 import bg_sound from "./sounds/bg_sound.mp3"
-import mouseover_sound from  './sounds/mouseover.mp3'
+import mouseover_sound from './sounds/mouseover.mp3'
 import timer_sound from './sounds/timer.wav'
 import correct_sound from './sounds/correct.wav'
 import wrong_sound from './sounds/wrong.wav'
@@ -130,7 +130,7 @@ class Goti extends PIXI.Sprite {
             misclick = 0;
             this.showcorrect()
             this.myanimation(letter_array, app);//calls myanimation that is responsible for tweens of the correct circle (after click).
-            this.checkwinner(letter_array,app);
+            this.checkwinner(letter_array, app);
 
         }
         else {//if wrong circle is clicked.
@@ -157,7 +157,7 @@ class Goti extends PIXI.Sprite {
     }
     myanimation(letter_array, app) {//animation for correct clicks.
         const store_tween = PIXI.tweenManager.createTween(this);//storing in the tank animation.
-        this.filters=false;
+        this.filters = false;
         store_tween.from({ x: this.x, y: this.y }).to({ x: _.random(1100, 1200), y: 615 })//tweens from and to
         store_tween.time = 600;//tween time
         iscorrect_sound.play();//plays sound linked with correct click.
@@ -216,25 +216,24 @@ class Goti extends PIXI.Sprite {
                 spread_tween.on("end", () => this.interactive = true)//user's click only work after tween is ended.
                 this.laterx = ranx;
                 this.latery = rany;
-                this.on("mouseover",()=>
-                {
-                    this.filters=[new GlowFilter({
-                        innerStrength:2,
-                        color:0xD3D3D3
+                this.on("mouseover", () => {
+                    this.filters = [new GlowFilter({
+                        innerStrength: 2,
+                        color: 0xD3D3D3
                     })];
-                    const scale_tween=PIXI.tweenManager.createTween(this.scale);
+                    const scale_tween = PIXI.tweenManager.createTween(this.scale);
                     ismouseover_sound.play();
-                    scale_tween.from({x:1,y:1}).to({x:1.1,y:1.1})
-                    scale_tween.time=100;
+                    scale_tween.from({ x: 1, y: 1 }).to({ x: 1.1, y: 1.1 })
+                    scale_tween.time = 100;
                     scale_tween.start()
-                    
+
                 });
-                this.on("mouseout",()=>{
-                    this.filters=false;
-                    const scale_tween=PIXI.tweenManager.createTween(this.scale);
+                this.on("mouseout", () => {
+                    this.filters = false;
+                    const scale_tween = PIXI.tweenManager.createTween(this.scale);
                     ismouseover_sound.play();
-                    scale_tween.from({x:1.1,y:1.1}).to({x:1,y:1})
-                    scale_tween.time=100;
+                    scale_tween.from({ x: 1.1, y: 1.1 }).to({ x: 1, y: 1 })
+                    scale_tween.time = 100;
                     scale_tween.start()
                 })
                 break;
@@ -268,10 +267,10 @@ class Goti extends PIXI.Sprite {
     /////////////-------------------Checks Winner and Resets-----------
     checkwinner(letter_array, app) {
         if (letter_array.length == 0) {//if letter_array is empty.
-            setTimeout(()=>{
-            isvictory_sound.play();//plays sound of victory
-            game.reset(app);//resets game
-            },500);
+            setTimeout(() => {
+                isvictory_sound.play();//plays sound of victory
+                game.reset(app);//resets game
+            }, 500);
         }
     }
 }
@@ -301,16 +300,16 @@ class Board {
             antialias: true//smoothens graphics.
         });
 
-        window.onresize = function (event){
+        window.onresize = function (event) {
             var w = window.innerWidth;
             var h = window.innerHeight;
-        
+
             //this part resizes the canvas but keeps ratio the same     
             app.view.style.width = w + "px";
             app.view.style.height = h + "px";
-        
+
             //this part adjusts the ratio:
-            app.resize(w,h);
+            app.resize(w, h);
         }
 
         let back_texture = PIXI.Texture.from(background);
@@ -330,23 +329,24 @@ class Board {
 
         const play_texture = PIXI.Texture.from(play);
         const play_button = new PIXI.Sprite(play_texture);
-        play_button.width=app.view.width*0.5;
-        play_button.height=app.view.height*0.3;
+        play_button.width = app.view.width * 0.5;
+        play_button.height = app.view.height * 0.3;
         play_button.anchor.set(0.5, 0.5)
         play_button.x = app.view.width / 2;
         play_button.y = app.view.height / 2
         play_button.interactive = true;
         app.stage.addChild(play_button);
-        play_button.on("mouseover",()=>{
+        play_button.on("mouseover", () => {
             ismouseover_sound.play();
-            play_button.filters=[new GlowFilter({
-            innerStrength: 1,
-            color: 0xD3D3D3
+            play_button.filters = [new GlowFilter({
+                innerStrength: 1,
+                color: 0xD3D3D3
 
-        })]});
-        play_button.on("mouseout",()=>{play_button.filters=false})
+            })]
+        });
+        play_button.on("mouseout", () => { play_button.filters = false })
         play_button.on("pointerdown", () => {
-            play_button.filters=false;
+            play_button.filters = false;
             const fade_tween = PIXI.tweenManager.createTween(play_button);
             fade_tween.from({ alpha: 1 }).to({ alpha: 0 });
             fade_tween.time = 500;
@@ -393,7 +393,7 @@ class Board {
     ////////////////------draws gotis objects------------
     draw(app) {
         const start = 'A'.charCodeAt(0);//starting letter code
-        const end = 'C'.charCodeAt(0);//ending letter code
+        const end = 'Z'.charCodeAt(0);//ending letter code
         for (let counter = start; counter <= end; counter++) {
             this.letter_array.push(String.fromCharCode(counter));//extracts letter from Character code with use of loop.
         }
@@ -421,26 +421,26 @@ class Board {
         });
         timertick_sound.play();
         seconds++//increases second by 1 every second
-        
-        if(seconds==10 || seconds==30 ||seconds==50){ style.fill="#ff0000"};
+
+        if (seconds == 10 || seconds == 30 || seconds == 50) { style.fill = "#ff0000" };
         if (seconds == 60) {
             minutes++;//increases min if seconds is 60;
-            style.fill="#ff0000";
+            style.fill = "#ff0000";
             seconds = 0;//reset seconds
         }
         if (minutes == 60) {
             hours++;//increases hours if minutes is 60;
-            style.fill="#ff0000";
+            style.fill = "#ff0000";
             minutes = 0;//reset minutes
         }
         timer.text = `Time Elapsed: ${hours}:${minutes}:${seconds}`;
         timer.style = style;
-        timer.position.x =app.view.width-400;
+        timer.position.x = app.view.width - 400;
         timer.position.y = 50;
         this.timetext_container.addChild(timer);//adds timer in timetext_container
 
     }
-    showscore(app){
+    showscore(app) {
         clearInterval(timeinterval);//stops timer.
         const style = new PIXI.TextStyle({
             fontFamily: "Comic Sans MS",
@@ -461,42 +461,43 @@ class Board {
         score_text.style = style;
         score_text.position.x = app.view.width / 4;
         score_text.position.y = app.view.width / 6;
-        this.timetext_container.alpha=0;
+        this.timetext_container.alpha = 0;
         this.timetext_container.addChild(score_text);
     }
     reset(app) {//resets game
         this.showscore(app);
-        const restart_texture=PIXI.Texture.from(restart);
-        const restart_button=new PIXI.Sprite(restart_texture);
-        restart_button.width=app.view.width*0.2;
-        restart_button.height=app.view.height*0.2;
-        restart_button.x=app.view.width*0.4;
-        restart_button.y=app.view.height*0.65;
-        restart_button.anchor.set(0.5,0.5);
-        restart_button.interactive=true;
+        const restart_texture = PIXI.Texture.from(restart);
+        const restart_button = new PIXI.Sprite(restart_texture);
+        restart_button.width = app.view.width * 0.2;
+        restart_button.height = app.view.height * 0.2;
+        restart_button.x = app.view.width * 0.4;
+        restart_button.y = app.view.height * 0.65;
+        restart_button.anchor.set(0.5, 0.5);
+        restart_button.interactive = true;
 
         const fade_tween = PIXI.tweenManager.createTween(this.timetext_container);
         fade_tween.from({ alpha: 0 }).to({ alpha: 1 });
         fade_tween.time = 900;
         fade_tween.start();
-        fade_tween.on("start",()=>{ app.stage.removeChild(nextletter_container);})//removes display of  correct one})
+        fade_tween.on("start", () => { app.stage.removeChild(nextletter_container); })//removes display of  correct one})
         fade_tween.on("end", () => {
             app.stage.addChild(restart_button);
         });
-        
-        restart_button.on("mouseover",()=>{
+
+        restart_button.on("mouseover", () => {
             ismouseover_sound.play();
-            restart_button.filters=[new GlowFilter({
-            innerStrength: 1,
-            color: 0xD3D3D3
+            restart_button.filters = [new GlowFilter({
+                innerStrength: 1,
+                color: 0xD3D3D3
 
-        })]});
-        restart_button.on("mouseout",()=>{restart_button.filters=false})
+            })]
+        });
+        restart_button.on("mouseout", () => { restart_button.filters = false })
 
-        restart_button.on("pointerdown",()=>{
-            restart_button.filters=false;
-            this.gotis.splice(0,this.gotis.length); 
-            this.letter_array.splice(0,this.letter_array.length);
+        restart_button.on("pointerdown", () => {
+            restart_button.filters = false;
+            this.gotis.splice(0, this.gotis.length);
+            this.letter_array.splice(0, this.letter_array.length);
             this.spot_container.removeChildren();
             this.timetext_container.removeChildren();
             app.stage.removeChild(this.tank_sprite);
@@ -505,16 +506,19 @@ class Board {
             fade_tween.from({ alpha: 1 }).to({ alpha: 0 });
             fade_tween.time = 500;
             fade_tween.start();
-            fade_tween.on("end", () => { app.stage.removeChild(restart_button); 
-                hours=0;
-                minutes=0;
-                seconds=-1;
-                this.timetext_container.removeChildren();})
-            
+            fade_tween.on("end", () => {
+                app.stage.removeChild(restart_button);
+                hours = 0;
+                minutes = 0;
+                seconds = -1;
+                this.timetext_container.removeChildren();
+            })
 
-            
+
+
             timeinterval = setInterval(() => {
-                this.mytimer(app);}, 1000);//called every 1 sec and increases seconds by 1.
+                this.mytimer(app);
+            }, 1000);//called every 1 sec and increases seconds by 1.
             app.stage.addChild(this.timetext_container);
             const style = new PIXI.TextStyle({
                 fontFamily: "Comic Sans MS",
