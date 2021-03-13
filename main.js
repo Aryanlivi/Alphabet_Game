@@ -2,7 +2,8 @@ const PIXI = require('pixi.js');//for rendering
 window.PIXI = PIXI;//global pixi
 const PixiTween = require('pixi-tween');//for animation
 import * as _ from "lodash"//for random ans shuffle
-import { Howl, Howler} from 'howler';
+import { Howl} from 'howler';
+import bg_sound from "./sounds/bg_sound.mp3"
 import mouseover_sound from  './sounds/mouseover.mp3'
 import timer_sound from './sounds/timer.wav'
 import correct_sound from './sounds/correct.wav'
@@ -25,6 +26,11 @@ let misclick = 0;//counts misclick
 
 
 ////////////////////--------------------------SOUNDS------------------------------------------//////////////////////////////
+const background_sound = new Howl({
+    src: [bg_sound]
+});
+background_sound.play();
+
 const iswrong_sound = new Howl({
     src: [wrong_sound]
 });
@@ -473,7 +479,10 @@ class Board {
         fade_tween.from({ alpha: 0 }).to({ alpha: 1 });
         fade_tween.time = 900;
         fade_tween.start();
-        fade_tween.on("end", () => {app.stage.addChild(restart_button)});
+        fade_tween.on("start",()=>{ app.stage.removeChild(nextletter_container);})//removes display of  correct one})
+        fade_tween.on("end", () => {
+            app.stage.addChild(restart_button);
+        });
         
         restart_button.on("mouseover",()=>{
             ismouseover_sound.play();
@@ -491,7 +500,6 @@ class Board {
             this.spot_container.removeChildren();
             this.timetext_container.removeChildren();
             app.stage.removeChild(this.tank_sprite);
-            app.stage.removeChild(nextletter_container);//displays correct one
             app.stage.removeChild(this.timetext_container);//add timer on canvas
             const fade_tween = PIXI.tweenManager.createTween(restart_button);
             fade_tween.from({ alpha: 1 }).to({ alpha: 0 });
